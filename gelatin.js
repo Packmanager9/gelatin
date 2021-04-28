@@ -899,7 +899,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     class Gelatin{
         constructor(x,y, size, dim){
-            this.shot = new Circle(x-200, y -240, 8, "white", 3 , 3)
+            this.shot = new Circle(x-50, y + (size*dim*.5), 8, "white", speed , .01)
             this.shot.gravity = .01
             this.x = x
             this.y = y
@@ -908,6 +908,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
             for(let t = 1;t<(dim*dim);t++){
                 let dot = new Circle(this.x, this.y, size*.5, "blue")
                 dot.gravity = 0
+                dot.friction = .99
                 this.spots.push(dot)
                 this.x+=size
                 if(t%dim==0){
@@ -917,16 +918,17 @@ window.addEventListener('DOMContentLoaded', (event) => {
             }
         }
         draw(){
+            this.collide()
             for(let t = 0;t<this.spots.length;t++){
                 this.spots[t].ymom += this.spots[t].gravity
-                this.spots[t].move()
+                this.spots[t].frictiveMove()
                 this.spots[t].draw()
             }
-            this.collide()
+            this.shot.draw()
         }
         collide(){
             this.shot.ymom += this.shot.gravity
-            this.shot.draw()
+            // this.shot.draw()
             this.shot.move()
             this.decreasex = 0
             this.decreasey = 0
@@ -935,15 +937,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
                         let link =  new LineOP(this.spots[t], this.shot)
                         const distance = (link.hypotenuse()) - ((this.size))
                         const angleRadians = link.angle()
-                        this.spots[t].xmom += (Math.cos(angleRadians) * distance) / 10
-                        this.spots[t].ymom  += (Math.sin(angleRadians) * distance) / 10
+                        this.spots[t].xmom += (Math.cos(angleRadians) * distance) / 5
+                        this.spots[t].ymom  += (Math.sin(angleRadians) * distance) / 5
+                        this.spots[t].xrepel += (Math.cos(angleRadians) * distance) / 1
+                        this.spots[t].yrepel  += (Math.sin(angleRadians) * distance) / 1
 
+                        // this.shot.xmom*=.999
+                        // this.shot.ymom*=.999
 
-                    // this.decreasex -= this.spots[t].xmom/1000
+                        this.decreasex -= (Math.cos(angleRadians) * distance) / 10000
+                        this.decreasey -= (Math.sin(angleRadians) * distance) / 10000
                     // this.decreasey -= this.spots[t].ymom/1000
                     this.spots[t].ymom += this.shot.ymom/(this.shot.radius/1.1)
                     this.spots[t].xmom += this.shot.xmom/(this.shot.radius/1.1)
-                    this.spots[t].gravity = .1
+                    // this.spots[t].gravity = .1
                 }
             }
 
@@ -956,11 +963,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
                         let link =  new LineOP(this.spots[t], this.spots[k])
                         const distance = (link.hypotenuse()) - ((this.size))
                         const angleRadians = link.angle()
-                        this.spots[t].xrepel += (Math.cos(angleRadians) * distance) / 2
-                        this.spots[t].yrepel  += (Math.sin(angleRadians) * distance) / 2
+                        this.spots[t].xrepel -= (Math.cos(angleRadians) * distance) / 1
+                        this.spots[t].yrepel -= (Math.sin(angleRadians) * distance) / 1
 
-                        this.spots[t].xmomavg =  ((this.spots[t].xmom*3) +this.spots[k].xmom) *.25
-                        this.spots[t].ymomavg = ( (this.spots[t].ymom*3) +this.spots[k].ymom  )*.25
+                        this.spots[t].xmomavg =  ((this.spots[t].xmom) +this.spots[k].xmom) *.5
+                        this.spots[t].ymomavg = ( (this.spots[t].ymom) +this.spots[k].ymom  )*.5
                         }
                     }
                 }
@@ -968,16 +975,22 @@ window.addEventListener('DOMContentLoaded', (event) => {
             for(let t = 0;t<this.spots.length;t++){
                 this.spots[t].repel()
             }
-            // this.shot.xmom+=this.decreasex
-            // this.shot.ymom+=this.decreasey
+            this.shot.xmom+=this.decreasex
+            this.shot.ymom+=this.decreasey
         }
     }
-    let gel = new Gelatin(400,300, 1, 70)
+    let speed = 4
+    let gel = new Gelatin(400,300, 2, 70)
 
     function main() {
         canvas_context.clearRect(0, 0, canvas.width, canvas.height)  // refreshes the image
         gamepadAPI.update() //checks for button presses/stick movement on the connected controller)
         // game code goes here
         gel.draw()
+        // if(keysPressed[' ']){
+            if(gel.shot.x > 1000){
+            speed++
+            // gel = new Gelatin(400,300, 2, 70)
+        }
     }
 })
